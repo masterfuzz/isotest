@@ -25,6 +25,7 @@ class Engine:
         self.event_hooks = defaultdict(list)
         self.step_hooks = {}
         self.layers = defaultdict(list)
+        self.map = None
 
     def run(self):
         if self.running:
@@ -74,12 +75,13 @@ class Engine:
         self.step_hooks[name] = hook
 
     def render(self):
-        self.screen.fill((255, 255, 255))
+        self.screen.fill(self.map.bg_color)
+        self.view.draw_map(self.map)
+
         for layer in self.layers.values():
             for entity in layer:
                 self.view.draw(entity)
 
-        # pygame.draw.circle(self.screen, (0, 0, 255), (250, 250), 75)
         pygame.display.flip()
 
     def set_timer(self, etype, period):
@@ -95,7 +97,6 @@ class Ball(pygame.sprite.Sprite):
         super().__init__()
         self.image = pygame.Surface((20, 10))
         self.image.fill((0, 0, 255))
-        self.rect = self.image.get_rect()
 
 
 class Viewport:
@@ -104,31 +105,34 @@ class Viewport:
         self.pos = pos if pos else [0,0]
 
     def draw(self, entity):
-        self.surf.blit(entity.get_image(), 
-            self.transform(entity.get_rect()))
+        self.surf.blit(self.transform_surf(entity.get_image()), 
+            self.transform_pos(entity.x, entity.y))
 
-    def transform(self, rect):
+    def draw_map(self, map):
+        self.draw(map)
+
+    def transform_surf(self, surf):
+        return pygame.transform.scale2x(surf)
+
+    def transform_pos(self, x, y):
         # var xScreen = xWorld * 1   + yWorld * -1  + 160;
         # var yScreen = xWorld * 0.5 + yWorld * 0.5 + 0;  
-        trect = rect.copy()
-        trect.x = GRID_SIZE * trect.x - self.pos[0]
-        trect.y = GRID_SIZE * trect.y - self.pos[1]
-        return trect
+        x = 2*GRID_SIZE * x - self.pos[0]
+        y = 2*GRID_SIZE * y - self.pos[1]
+        return x, y
 
     def shift(self, x, y):
         self.pos[0] += x
         self.pos[1] += y
 
 class Entity:
-    def __init__(self, pos=None):
-        self.pos = pos if pos else [0,0]
+    def __init__(self, x=0, y=0):
+        self.x = x
+        self.y = y
         self._sprite = Ball()
-        self._sprite.rect.x, self._sprite.y = pos
 
     def get_image(self):
         return self._sprite.image
 
-    def get_rect(self):
-        return self._sprite.rect
 
 
