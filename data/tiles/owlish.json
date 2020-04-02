@@ -1,0 +1,9 @@
+{
+    "image": "data/tiles/owlish.png",
+    "size": 32,
+    "names": {
+        "grass": [1],
+        "sand": [3],
+        "water": [28,29,30,31]
+    }
+}

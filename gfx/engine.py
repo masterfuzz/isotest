@@ -37,6 +37,7 @@ class Engine:
         while self.running:
             self.handle_events()
             self.handle_steps()
+            self.map.advance()
             self.render()
             self.clock.tick(30)
 
@@ -91,14 +92,6 @@ class Engine:
         pygame.quit()
 
 
-
-class Ball(pygame.sprite.Sprite):
-    def __init__(self):
-        super().__init__()
-        self.image = pygame.Surface((20, 10))
-        self.image.fill((0, 0, 255))
-
-
 class Viewport:
     def __init__(self, surface, pos=None):
         self.surf = surface
@@ -126,13 +119,23 @@ class Viewport:
         self.pos[1] += y
 
 class Entity:
-    def __init__(self, x=0, y=0):
+    def __init__(self, tile_set, x=0, y=0):
         self.x = x
         self.y = y
-        self._sprite = Ball()
+        self.tile_set = tile_set
+        self.pose = 0
+        self.frame = 0
+        self.animate = False
+
+    def set_pose(self, pose):
+        self.pose = pose
 
     def get_image(self):
-        return self._sprite.image
+        img = self.tile_set[self.pose]
+        if type(img) == list:
+            return img[int(self.frame) % len(img)]
+        return img
+
 
 
 
