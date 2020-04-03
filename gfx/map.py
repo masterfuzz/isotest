@@ -1,6 +1,9 @@
 import pygame
 import json
 from .engine import GRID_SIZE
+from .engine import Entity
+from logging import Logger
+log = Logger(__name__)
 
 class TileSet:
     def __init__(self, path):
@@ -42,6 +45,7 @@ class TileSet:
         if type(index) == int:
             return self._tiles[index]
         else:
+
             path = index.split('/')
             if len(path) == 2:
                 return self._named[path[0]][int(path[1])]
@@ -57,8 +61,9 @@ class TileMap:
         self.x = None
         self.y = None
         self.bg_color = (0,0,0)
-        self._load_map(map_file)
         self.frame = 0
+        self.entities = []
+        self._load_map(map_file)
 
 
     def _load_map(self, path):
@@ -68,6 +73,14 @@ class TileMap:
         self.bg_color = map_data.get('bg_color', (0,0,0))
         self.grid = map_data['grid']
         self.tile_set = TileSet(map_data['tile_set'])
+        self._load_entities(map_data.get('entities', []))
+
+    def _load_entities(self, entity_list):
+        for spec in entity_list:
+            with open(spec['id']) as fh:
+                templ = json.load(fh)
+            e = Entity(pos=spec.get('pos', [0,0]), tile_set=TileSet(templ['tile_set']))
+            self.entities.append(e)
 
     def advance(self, rate=10):
         self.frame += 1/rate

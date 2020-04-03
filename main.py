@@ -1,18 +1,14 @@
 from gfx.engine import Engine, Entity
 from gfx.map import TileMap, TileSet
 from pygame.locals import KEYDOWN
-
+from logging import Logger
+log = Logger(__name__)
 
 
 e = Engine()
 m = TileMap("data/maps/zeroes.json")
 m.render()
 e.map = m
-
-soldier_tiles = TileSet("data/tiles/soldier.json")
-soldier = Entity(soldier_tiles)
-
-e.layers[0].append(soldier)
 
 @e.on(KEYDOWN)
 def move_view(event):

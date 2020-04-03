@@ -1,6 +1,9 @@
 from collections import defaultdict
 import pygame
 import random
+from logging import Logger
+log = Logger(__name__)
+
 from pygame.locals import (
     K_UP,
     K_DOWN,
@@ -78,6 +81,8 @@ class Engine:
     def render(self):
         self.screen.fill(self.map.bg_color)
         self.view.draw_map(self.map)
+        for entity in self.map.entities:
+            self.view.draw(entity)
 
         for layer in self.layers.values():
             for entity in layer:
@@ -118,23 +123,27 @@ class Viewport:
         self.pos[0] += x
         self.pos[1] += y
 
+    def screen_to_grid(self, screen_x, screen_y):
+        grid_x = (screen_x + self.pos[0]) / (2*GRID_SIZE)
+        grid_y = (screen_y + self.pos[0]) / (2*GRID_SIZE)
+        return grid_x, grid_y
+
 class Entity:
-    def __init__(self, tile_set, x=0, y=0):
-        self.x = x
-        self.y = y
+    def __init__(self, tile_set, pos=None, pose=0):
+        pos = pos if pos else [0,0]
+        self.x, self.y = pos
         self.tile_set = tile_set
-        self.pose = 0
+        self.pose = pose
+        self.vflip = False
+        self.hflip = False
         self.frame = 0
         self.animate = False
-
-    def set_pose(self, pose):
-        self.pose = pose
 
     def get_image(self):
         img = self.tile_set[self.pose]
         if type(img) == list:
-            return img[int(self.frame) % len(img)]
-        return img
+            return pygame.transform.flip(img[int(self.frame) % len(img)], self.vflip, self.hflip)
+        return pygame.transform.flip(img, self.vflip, self.hflip)
 
 
 
