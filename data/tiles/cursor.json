@@ -1,0 +1,8 @@
+{
+    "image": "data/tiles/cursor.png",
+    "size": 32,
+    "key": [255,255,255],
+    "names": {
+        "cursor": [0]
+    }
+}

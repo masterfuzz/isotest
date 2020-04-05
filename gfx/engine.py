@@ -113,8 +113,6 @@ class Viewport:
         return pygame.transform.scale2x(surf)
 
     def transform_pos(self, x, y):
-        # var xScreen = xWorld * 1   + yWorld * -1  + 160;
-        # var yScreen = xWorld * 0.5 + yWorld * 0.5 + 0;  
         x = 2*GRID_SIZE * x - self.pos[0]
         y = 2*GRID_SIZE * y - self.pos[1]
         return x, y
@@ -122,6 +120,11 @@ class Viewport:
     def shift(self, x, y):
         self.pos[0] += x
         self.pos[1] += y
+
+    def center_on(self, entity):
+        self.pos = 0, 0
+        nx, ny = self.screen_to_grid(self.surf.get_width() / 2, self.surf.get_height() / 2)
+        self.pos = self.transform_pos(entity.x-nx+0.5, entity.y-ny+0.5)
 
     def screen_to_grid(self, screen_x, screen_y):
         grid_x = (screen_x + self.pos[0]) / (2*GRID_SIZE)

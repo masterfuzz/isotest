@@ -65,6 +65,13 @@ class TileMap:
         self.entities = []
         self._load_map(map_file)
 
+    @property
+    def width(self):
+        return len(self.grid)
+    
+    @property
+    def height(self):
+        return len(self.grid[0])
 
     def _load_map(self, path):
         with open(path) as fh:
@@ -95,16 +102,11 @@ class TileMap:
                 if type(tile) == list:
                     tile = tile[int(self.frame) % len(tile)]
                 surf.blit(tile, (i*GRID_SIZE, j*GRID_SIZE))
-            # isometric
-            # for j, tile_id in reversed(list(enumerate(row))):
-            #     tile = self.tile_set[tile_id]
-            #     surf.blit(tile, (
-            #         (j * GRID_SIZE/2) + (i * GRID_SIZE/2),
-            #         (i * GRID_SIZE/2) - (j * GRID_SIZE/2)
-            #     ))
 
         self.image = surf
+        return self
 
 
     def get_image(self):
         return self.image
+
