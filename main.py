@@ -6,21 +6,30 @@ log = Logger(__name__)
 
 
 eng = Engine()
-eng.map = TileMap("data/maps/zeroes.json").render()
+# eng.map = TileMap("data/maps/zeroes.json").render()
+eng.map = TileMap("data/maps/lorge.json")
 
 class Cursor(Entity):
     def __init__(self, cursorfile):
         super().__init__(TileSet(cursorfile))
 
 cursor = Cursor("data/tiles/cursor.json")
-cursor.x = int(eng.map.width / 2)
-cursor.y = int(eng.map.height / 2)
-eng.view.center_on(cursor)
+# cursor.x = int(eng.map.width / 2)
+# cursor.y = int(eng.map.height / 2)
 
 eng.layers[99].append(cursor)
 
+selected_ent = 0
+def goto_ent(ent_id):
+    ent = eng.map.entities[ent_id]
+    cursor.x = ent.x
+    cursor.y = ent.y
+goto_ent(0)
+eng.view.center_on(cursor)
+
 @eng.on(KEYDOWN)
 def move_view(event):
+    global selected_ent
     if event.key == ord('w'):
         cursor.y -= 1
     if event.key == ord('s'):
@@ -29,8 +38,12 @@ def move_view(event):
         cursor.x -= 1
     if event.key == ord('d'):
         cursor.x += 1
+    if event.key == ord('n'):
+        selected_ent = (selected_ent + 1) % len(eng.map.entities)
+        goto_ent(selected_ent)
     # eng.view.shift(x*32, y*32)
     eng.view.center_on(cursor)
+    # print(f"{cursor.x}, {cursor.y}")
 
 eng.run()
 eng.quit()

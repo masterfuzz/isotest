@@ -57,13 +57,13 @@ class TileMap:
     def __init__(self, map_file):
         self.tile_set = []
         self.grid = None
-        self.image = None
         self.x = None
         self.y = None
         self.bg_color = (0,0,0)
         self.frame = 0
         self.entities = []
         self._load_map(map_file)
+        self.default_tile = None
 
     @property
     def width(self):
@@ -86,27 +86,31 @@ class TileMap:
         for spec in entity_list:
             with open(spec['id']) as fh:
                 templ = json.load(fh)
-            e = Entity(pos=spec.get('pos', [0,0]), tile_set=TileSet(templ['tile_set']))
+            e = Entity(pos=spec['pos'], tile_set=TileSet(templ['tile_set']))
             self.entities.append(e)
 
     def advance(self, rate=10):
         self.frame += 1/rate
-        self.render()
+        # self.render()
 
-    def render(self):
-        surf = pygame.Surface((len(self.grid) * GRID_SIZE, len(self.grid[0])* GRID_SIZE))
-        
-        for j, row in enumerate(self.grid):
-            for i, tile_id in enumerate(row):
-                tile = self.tile_set[tile_id]
-                if type(tile) == list:
-                    tile = tile[int(self.frame) % len(tile)]
-                surf.blit(tile, (i*GRID_SIZE, j*GRID_SIZE))
+    # def get_tiles(self, filter=None):
+    #     for j, row in enumerate(self.grid):
+    #         for i, tile_id in enumerate(row):
+    #             if filter and not filter(pygame.Rect(i, j, 1, 1)):
+    #                 continue 
+    #             # surf.blit(tile, (i*GRID_SIZE, j*GRID_SIZE))
+    #             yield i, j, tile
 
-        self.image = surf
-        return self
+    def __getitem__(self, index):
+        i, j = index
+        if i < 0 or i > len(self.grid) or j < 0 or j > len(self.grid[0]):
+            return self.default_tile
 
+        tile = self.tile_set[self.grid[i][j]]
+        if type(tile) == list:
+            tile = tile[int(self.frame) % len(tile)]
+        return tile
 
-    def get_image(self):
-        return self.image
+    def get_rect(self):
+        return self.image.get_rect()
 
