@@ -91,19 +91,10 @@ class TileMap:
 
     def advance(self, rate=10):
         self.frame += 1/rate
-        # self.render()
-
-    # def get_tiles(self, filter=None):
-    #     for j, row in enumerate(self.grid):
-    #         for i, tile_id in enumerate(row):
-    #             if filter and not filter(pygame.Rect(i, j, 1, 1)):
-    #                 continue 
-    #             # surf.blit(tile, (i*GRID_SIZE, j*GRID_SIZE))
-    #             yield i, j, tile
 
     def __getitem__(self, index):
         i, j = index
-        if i < 0 or i > len(self.grid) or j < 0 or j > len(self.grid[0]):
+        if i < 0 or i >= len(self.grid) or j < 0 or j >= len(self.grid[0]):
             return self.default_tile
 
         tile = self.tile_set[self.grid[i][j]]

@@ -13,16 +13,18 @@ from pygame.locals import (
     K_ESCAPE,
     KEYDOWN,
     QUIT,
+    FULLSCREEN
 )
 
-SCREEN_HEIGHT = 500
-SCREEN_WIDTH = 500
+SCREEN_HEIGHT = 800
+SCREEN_WIDTH = 600
 GRID_SIZE = 32
 
 class Engine:
-    def __init__(self, width=SCREEN_WIDTH, height=SCREEN_HEIGHT):
+    def __init__(self, width=SCREEN_WIDTH, height=SCREEN_HEIGHT, full_screen=False):
         pygame.init()
-        self.screen = pygame.display.set_mode([width, height])
+        flags = FULLSCREEN if full_screen else 0
+        self.screen = pygame.display.set_mode([width, height], flags=flags)
         self.view = Viewport(self.screen)
         self.running = False
         self.clock = pygame.time.Clock()
