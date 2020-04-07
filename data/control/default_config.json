@@ -12,14 +12,15 @@
             "UP": "w",
             "DOWN": "s",
             "LEFT": "a",
-            "RIGHT": "d"
+            "RIGHT": "d",
+            "NEXT": "n"
         },
         "VIEW": {
             "ZOOM_IN": "=",
             "ZOOM_OUT": "-"
         },
         "GAME": {
-            "QUIT": ["q", "ESC"],
+            "QUIT": ["q", "ESCAPE"],
             "TOGGLE_FULLSCREEN": "F5"
         }
     }

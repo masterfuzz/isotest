@@ -2,13 +2,15 @@ from gfx.engine import Engine, Entity
 from gfx.map import TileMap, TileSet
 from gfx.gui import Gui, Widget
 from control.config import Config
+from control.keybind import Keybindings
 from pygame.locals import KEYDOWN, MOUSEBUTTONDOWN
 from logging import Logger
 log = Logger(__name__)
 
 cfg = Config("data/control/default_config.json")
 eng = Engine(cfg)
-# eng.map = TileMap("data/maps/zeroes.json").render()
+keybindings = Keybindings(cfg.get("keybindings"))
+
 eng.map = TileMap("data/maps/lorge.json")
 eng.gui = Gui(None)
 
@@ -19,8 +21,6 @@ class Cursor(Entity):
         super().__init__(TileSet(cursorfile))
 
 cursor = Cursor("data/tiles/cursor.json")
-# cursor.x = int(eng.map.width / 2)
-# cursor.y = int(eng.map.height / 2)
 
 eng.layers[99].append(cursor)
 
@@ -35,24 +35,26 @@ eng.view.center_on(cursor)
 @eng.on(KEYDOWN)
 def move_view(event):
     global selected_ent
-    if event.key == ord('w'):
-        cursor.y -= 1
-    if event.key == ord('s'):
-        cursor.y += 1
-    if event.key == ord('a'):
-        cursor.x -= 1
-    if event.key == ord('d'):
-        cursor.x += 1
-    if event.key == ord('-'):
-        eng.view.scale -= 0.1
-    if event.key == ord('='):
-        eng.view.scale += 0.1
-    if event.key == ord('n'):
-        selected_ent = (selected_ent + 1) % len(eng.map.entities)
-        goto_ent(selected_ent)
-    # eng.view.shift(x*32, y*32)
-    eng.view.center_on(cursor)
-    # print(f"{cursor.x}, {cursor.y}")
+    section, action = keybindings.filter()(event)
+    if section == "CURSOR":
+        if action == "UP":
+            cursor.y -= 1
+        if action == "DOWN":
+            cursor.y += 1
+        if action == "LEFT":
+            cursor.x -= 1
+        if action == "RIGHT":
+            cursor.x += 1
+        elif action == "NEXT":
+            selected_ent = (selected_ent + 1) % len(eng.map.entities)
+            goto_ent(selected_ent)
+        eng.view.center_on(cursor)
+    elif section == "VIEW":
+        if action == "ZOOM_OUT":
+            eng.view.scale -= 0.1
+        elif action == "ZOOM_IN":
+            eng.view.scale += 0.1
+        eng.view.center_on(cursor)
 
 eng.run()
 eng.quit()

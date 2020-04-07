@@ -158,14 +158,6 @@ class Viewport:
         y = self.scale*GRID_SIZE * y - self.pos[1]
         return x, y
 
-    # def transform_rect(self, rect):
-    #     x, y = self.transform_pos(rect.x, rect.y)
-    #     img_w, img_h = rect.bottomright
-    #     bx, by = self.transform_pos(img_w / 32 + rect.x, img_h / 32 + rect.y)
-    #     w = bx - x
-    #     h = by - y
-    #     return pygame.Rect(x,y,w,h)
-
     def shift(self, x, y):
         self.pos[0] += x
         self.pos[1] += y
