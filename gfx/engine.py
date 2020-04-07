@@ -110,6 +110,7 @@ class Viewport:
     def __init__(self, surface, pos=None):
         self.surf = surface
         self.pos = pos if pos else [0,0]
+        self.scale = 2
 
     def draw(self, entity):
         if self.in_view(entity.get_rect()):
@@ -123,7 +124,6 @@ class Viewport:
         # return self.transform_rect(rect).colliderect(self.surf.get_rect())
         x,y = self.transform_pos(rect.x, rect.y)
         return self.surf.get_rect().collidepoint(x,y)
-
 
     def draw_map(self, map):
         tile_count = 0
@@ -139,20 +139,25 @@ class Viewport:
         return tile_count
 
     def transform_surf(self, surf):
-        return pygame.transform.scale2x(surf)
+        if self.scale == 2:
+            return pygame.transform.scale2x(surf)
+        else:
+            rect = surf.get_rect()
+            return pygame.transform.scale(surf, (int(rect.width*self.scale), int(rect.height*self.scale)))
+
 
     def transform_pos(self, x, y):
-        x = 2*GRID_SIZE * x - self.pos[0]
-        y = 2*GRID_SIZE * y - self.pos[1]
+        x = self.scale*GRID_SIZE * x - self.pos[0]
+        y = self.scale*GRID_SIZE * y - self.pos[1]
         return x, y
 
-    def transform_rect(self, rect):
-        x, y = self.transform_pos(rect.x, rect.y)
-        img_w, img_h = rect.bottomright
-        bx, by = self.transform_pos(img_w / 32 + rect.x, img_h / 32 + rect.y)
-        w = bx - x
-        h = by - y
-        return pygame.Rect(x,y,w,h)
+    # def transform_rect(self, rect):
+    #     x, y = self.transform_pos(rect.x, rect.y)
+    #     img_w, img_h = rect.bottomright
+    #     bx, by = self.transform_pos(img_w / 32 + rect.x, img_h / 32 + rect.y)
+    #     w = bx - x
+    #     h = by - y
+    #     return pygame.Rect(x,y,w,h)
 
     def shift(self, x, y):
         self.pos[0] += x
@@ -164,8 +169,8 @@ class Viewport:
         self.pos = self.transform_pos(entity.x-nx+0.5, entity.y-ny+0.5)
 
     def screen_to_grid(self, screen_x, screen_y):
-        grid_x = (screen_x + self.pos[0]) / (2*GRID_SIZE)
-        grid_y = (screen_y + self.pos[1]) / (2*GRID_SIZE)
+        grid_x = (screen_x + self.pos[0]) / (self.scale*GRID_SIZE)
+        grid_y = (screen_y + self.pos[1]) / (self.scale*GRID_SIZE)
         return grid_x, grid_y
 
     def view_grid_range(self):

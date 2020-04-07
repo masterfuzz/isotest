@@ -38,6 +38,10 @@ def move_view(event):
         cursor.x -= 1
     if event.key == ord('d'):
         cursor.x += 1
+    if event.key == ord('-'):
+        eng.view.scale -= 0.1
+    if event.key == ord('='):
+        eng.view.scale += 0.1
     if event.key == ord('n'):
         selected_ent = (selected_ent + 1) % len(eng.map.entities)
         goto_ent(selected_ent)
