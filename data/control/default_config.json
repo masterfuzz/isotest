@@ -1,0 +1,26 @@
+{
+    "graphics": {
+        "display_mode": [800, 600],
+        "fullscreen": false,
+        "frame_limit": 30
+    },
+    "game": {
+        "opening": "data/scene/start.json"
+    },
+    "keybindings": {
+        "CURSOR": {
+            "UP": "w",
+            "DOWN": "s",
+            "LEFT": "a",
+            "RIGHT": "d"
+        },
+        "VIEW": {
+            "ZOOM_IN": "=",
+            "ZOOM_OUT": "-"
+        },
+        "GAME": {
+            "QUIT": ["q", "ESC"],
+            "TOGGLE_FULLSCREEN": "F5"
+        }
+    }
+}

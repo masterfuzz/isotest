@@ -17,15 +17,17 @@ from pygame.locals import (
     FULLSCREEN
 )
 
-SCREEN_HEIGHT = 800
-SCREEN_WIDTH = 600
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
 GRID_SIZE = 32
 
 class Engine:
-    def __init__(self, width=SCREEN_WIDTH, height=SCREEN_HEIGHT, full_screen=False):
+    def __init__(self, config):
         pygame.init()
-        flags = FULLSCREEN if full_screen else 0
-        self.screen = pygame.display.set_mode([width, height], flags=flags)
+        flags = int(config.get('graphics/full_screen', 0))
+        self.screen = pygame.display.set_mode(config.get('graphics/display_mode', [SCREEN_WIDTH, SCREEN_HEIGHT]), flags=flags)
+        self.frame_limit = config.get('graphics/frame_limit', 30)
+
         self.view = Viewport(self.screen)
         self.running = False
         self.clock = pygame.time.Clock()
@@ -47,7 +49,7 @@ class Engine:
             self.handle_steps()
             self.map.advance()
             entity_count, tile_count = self.render()
-            self.clock.tick(200)
+            self.clock.tick(self.frame_limit)
             fps = self.clock.get_fps()
             
             pygame.display.set_caption(f"drew {entity_count} entities, {tile_count} tiles @{fps:.2f} FPS")

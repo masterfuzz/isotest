@@ -1,12 +1,13 @@
 from gfx.engine import Engine, Entity
 from gfx.map import TileMap, TileSet
 from gfx.gui import Gui, Widget
+from control.config import Config
 from pygame.locals import KEYDOWN, MOUSEBUTTONDOWN
 from logging import Logger
 log = Logger(__name__)
 
-
-eng = Engine()
+cfg = Config("data/control/default_config.json")
+eng = Engine(cfg)
 # eng.map = TileMap("data/maps/zeroes.json").render()
 eng.map = TileMap("data/maps/lorge.json")
 eng.gui = Gui(None)

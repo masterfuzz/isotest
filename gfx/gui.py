@@ -1,17 +1,21 @@
-from pygame import font
+from pygame import font, Surface
 # from .engine import SCREEN_HEIGHT, SCREEN_WIDTH
 
 class Widget:
-    def __init__(self):
+    def __init__(self, width=32, height=32):
         self.x = 20
         self.y = 20
-        self.text = "I want to say something before this whole thing gets out of control."
+        self.text = "Uninitialized Widget"
         self.color = (0,0,0)
+        self.surf = Surface((width, height))
 
         self.font = font.SysFont(None, 24)
         
     def renderer(self):
-        return self.font.render(self.text, True, self.color)
+        self.surf.fill((255,255,255))
+        font_surf = self.font.render(self.text, True, self.color)
+        self.surf.blit(font_surf, (0,0))
+        return self.surf
 
 
 class Gui:
