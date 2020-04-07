@@ -3,6 +3,7 @@ import pygame
 import random
 from math import floor, ceil
 from logging import Logger
+from .gui import Widget
 log = Logger(__name__)
 
 from pygame.locals import (
@@ -32,6 +33,7 @@ class Engine:
         self.step_hooks = {}
         self.layers = defaultdict(list)
         self.map = None
+        self.gui = None
 
     def run(self):
         if self.running:
@@ -95,6 +97,9 @@ class Engine:
         for layer in self.layers.values():
             for entity in layer:
                 entity_count += int(self.view.draw(entity))
+
+        for widget in self.gui.widgets:
+            self.screen.blit(widget.renderer(), (widget.x, widget.y))
 
         pygame.display.flip()
         return entity_count, tile_count
