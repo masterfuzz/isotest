@@ -34,4 +34,5 @@ class Keybindings:
                 for action, keys in self._keys[section].items():
                     if event.key in keys:
                         return section, action
+            return None, None
         return inner
