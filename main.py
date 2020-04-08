@@ -3,14 +3,17 @@ from gfx.map import TileMap, TileSet
 from gfx.gui import Gui, Widget
 from control.config import Config
 from control.keybind import Keybindings
-from pygame.locals import KEYDOWN, MOUSEBUTTONDOWN
+from pygame.locals import KEYDOWN, KEYUP, MOUSEBUTTONDOWN
+# import pygame
 from logging import Logger
 log = Logger(__name__)
 
 cfg = Config("data/control/default_config.json")
 eng = Engine(cfg)
 keybindings = Keybindings(cfg.get("keybindings"))
-eng.on(KEYDOWN)(keybindings.run_hooks)
+eng.on(KEYDOWN)(keybindings.keydown)
+eng.on(KEYUP)(keybindings.keyup)
+eng.set_timer(cfg.get("game/key_repeat_period", 250))(keybindings.keyrepeat)
 
 eng.map = TileMap("data/maps/lorge.json")
 eng.gui = Gui(None)
@@ -60,6 +63,8 @@ def zoom_view(action):
     elif action == "ZOOM_IN":
         eng.view.scale += 0.1
     eng.view.center_on(cursor)
+
+keybindings.hook("GAME", "QUIT")(eng.stop)
 
 eng.run()
 eng.quit()

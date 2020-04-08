@@ -21,6 +21,20 @@ class Keybindings:
             } for section, action_list in keys.items()
         }
         self.hooks = defaultdict(lambda: defaultdict(list))
+        self.pressed_keys = set()
+
+    def keydown(self, event):
+        self.pressed_keys.add(event.key)
+        self.run_hooks(event)
+    
+    def keyup(self, event):
+        self.pressed_keys.remove(event.key)
+
+    def keyrepeat(self, event):
+        for key in self.pressed_keys:
+            kevent = lambda:None
+            kevent.key = key
+            self.run_hooks(kevent)
     
     def run_hooks(self, key):
         # TODO enable/disable sections

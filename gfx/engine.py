@@ -36,6 +36,7 @@ class Engine:
         self.layers = defaultdict(list)
         self.map = None
         self.gui = None
+        self.user_event = pygame.USEREVENT
 
     def run(self):
         if self.running:
@@ -61,16 +62,11 @@ class Engine:
 
     def handle_events(self):
         for event in pygame.event.get():
-            # print(f"event: {event}")
+            if event.type == pygame.QUIT:
+                self.running = False
+                return
             for hook in self.event_hooks[event.type]:
                 hook(event)
-            if event.type == pygame.KEYDOWN:
-                if event.key == K_ESCAPE:
-                    self.running = False
-                elif event.key == ord('q'):
-                    self.running = False
-            elif event.type == pygame.QUIT:
-                self.running = False
 
     def register_hook(self, etype, hook):
         self.event_hooks[etype].append(hook)
@@ -106,8 +102,20 @@ class Engine:
         pygame.display.flip()
         return entity_count, tile_count
 
-    def set_timer(self, etype, period):
-        pygame.time.set_timer(etype, period)
+    def set_timer(self, period, etype=None):
+        def decorate(func):
+            nonlocal etype 
+            if etype is None:
+                self.user_event += 1
+                etype = self.user_event
+            pygame.time.set_timer(etype, period)
+            self.on(etype)(func)
+            return func
+        return decorate
+
+    def stop(self):
+        # trigger pygame quit event??
+        self.running = False
 
     def quit(self): 
         pygame.quit()
