@@ -1,4 +1,5 @@
 import pygame.locals
+from collections import defaultdict
 
 def _pygame_keys(key):
     # TODO make less gross
@@ -19,10 +20,22 @@ class Keybindings:
                 action: _pygame_keys(bindings) for action, bindings in action_list.items()
             } for section, action_list in keys.items()
         }
-        self.hooks = []
+        self.hooks = defaultdict(lambda: defaultdict(list))
     
-    def trigger(self, key_event, active_sections=None):
-        pass
+    def run_hooks(self, key):
+        # TODO enable/disable sections
+        for section in self._keys:
+            _, action = self.filter([section])(key)
+            if action:
+                for wildcard_hook in self.hooks[section]['*']:
+                    wildcard_hook(action)
+                for hook in self.hooks[section][action]:
+                    hook()
+
+    def hook(self, section, action='*'):
+        def decorator(func):
+            self.hooks[section][action].append(func)
+        return decorator
 
     def filter(self, sections=None):
         def inner(event):
