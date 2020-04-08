@@ -1,6 +1,6 @@
 from gfx.engine import Engine, Entity
 from gfx.map import TileMap, TileSet
-from gfx.gui import Gui, Widget
+from gfx.gui import Gui, TextBox, CenterHorizontal
 from control.config import Config
 from control.keybind import Keybindings
 from pygame.locals import KEYDOWN, KEYUP, MOUSEBUTTONDOWN
@@ -16,9 +16,21 @@ eng.on(KEYUP)(keybindings.keyup)
 eng.set_timer(cfg.get("game/key_repeat_period", 250))(keybindings.keyrepeat)
 
 eng.map = TileMap("data/maps/lorge.json")
-eng.gui = Gui(None)
+status_box = TextBox("Hello World", size=(80, 25))
+entity_box = TextBox("No selection")
+eng.gui = Gui(
+    entity_box, 
+    CenterHorizontal(
+        status_box,
+        pos=(0,eng.screen_height-64),
+        size=(eng.screen_width, 64)
+    )
+)
 
-eng.gui.widgets.append(Widget())
+
+@eng.set_timer(160)
+def show_stats(e):
+    status_box.text = f"FPS: {eng.get_fps()}"
 
 class Cursor(Entity):
     def __init__(self, cursorfile):
@@ -55,6 +67,14 @@ def move_cursor(action):
         cursor.selected_ent = (cursor.selected_ent + 1) % len(eng.map.entities)
         ent = eng.map.entities[cursor.selected_ent]
         cursor.goto(ent.x, ent.y)
+
+@keybindings.hook("CURSOR", "SELECT")
+def select_entity():
+    ent = eng.entity_at((cursor.x, cursor.y))
+    if ent:
+        entity_box.text = "You selected something"
+    else:
+        entity_box.text = "Nothing here"
 
 @keybindings.hook("VIEW")
 def zoom_view(action):

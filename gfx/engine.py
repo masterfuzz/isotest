@@ -38,6 +38,17 @@ class Engine:
         self.gui = None
         self.user_event = pygame.USEREVENT
 
+    @property
+    def screen_width(self):
+        return self.screen.get_width()
+
+    @property
+    def screen_height(self):
+        return self.screen.get_height()
+
+    def get_fps(self):
+        return self.clock.get_fps()
+
     def run(self):
         if self.running:
             print('already running??')
@@ -119,6 +130,12 @@ class Engine:
 
     def quit(self): 
         pygame.quit()
+
+    def entity_at(self, pos):
+        x, y = pos
+        for ent in self.map.entities:
+            if ent.x == x and ent.y == y:
+                return ent
 
 
 class Viewport:

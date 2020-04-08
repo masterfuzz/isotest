@@ -13,7 +13,8 @@
             "DOWN": "s",
             "LEFT": "a",
             "RIGHT": "d",
-            "NEXT": "n"
+            "NEXT": "n",
+            "SELECT": "SPACE"
         },
         "VIEW": {
             "ZOOM_IN": "=",
