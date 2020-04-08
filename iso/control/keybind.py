@@ -1,4 +1,7 @@
 import pygame.locals
+from pygame.locals import (
+    KEYDOWN, KEYUP, MOUSEBUTTONDOWN
+)
 from collections import defaultdict
 
 def _pygame_keys(key):

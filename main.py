@@ -1,9 +1,9 @@
-from gfx.engine import Engine, Entity
-from gfx.map import TileMap, TileSet
-from gfx.gui import Gui, TextBox, CenterHorizontal
-from control.config import Config
-from control.keybind import Keybindings
-from pygame.locals import KEYDOWN, KEYUP, MOUSEBUTTONDOWN
+from iso.gfx.engine import Engine, Entity
+from iso.gfx.map import TileMap, TileSet
+from iso.gfx.gui import Gui, TextBox, CenterHorizontal
+from iso.control.config import Config
+from iso.control.keybind import Keybindings
+from iso.control.keybind import KEYDOWN, KEYUP, MOUSEBUTTONDOWN
 # import pygame
 from logging import Logger
 log = Logger(__name__)
