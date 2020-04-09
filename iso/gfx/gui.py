@@ -11,19 +11,34 @@ class Widget:
         return self.surf
 
 class TextBox(Widget):
-    def __init__(self, text, pos=(0,0), size=(64,64), fg_color=(0,0,0), bg_color=(255,255,255), font=None):
+    def __init__(self, text, pos=(0,0), size=(64,64), fg_color=(0,0,0), 
+                    wrap=False, resize=False,
+                    bg_color=(255,255,255), font=None):
+
         super().__init__(pos, size)
-        self.text = text
+        self._text = text
         self.bg_color = bg_color
         self.fg_color = fg_color
+        self.resize = resize
         self.font = font if font else pygame.font.SysFont(None, 24)
 
     def renderer(self):
-        surf = super().renderer()
-        surf.fill(self.bg_color)
-        font_surf = self.font.render(self.text, True, self.fg_color)
-        surf.blit(font_surf, (0,0))
+        font_surf = self.font.render(self.text, True, self.fg_color, self.bg_color)
+        if self.resize:
+            surf = font_surf
+        else:
+            surf = super().renderer()
+            surf.fill(self.bg_color)
+            surf.blit(font_surf, (0,0))
         return surf
+
+    @property
+    def text(self):
+        return self._text
+
+    @text.setter
+    def text(self, value):
+        self._text = value
 
 class Container(Widget):
     def __init__(self, *children, pos=(0,0), size=(64,64)):

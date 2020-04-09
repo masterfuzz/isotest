@@ -3,7 +3,6 @@ import pygame
 import random
 from math import floor, ceil
 from logging import Logger
-from .gui import Widget
 log = Logger(__name__)
 
 from pygame.locals import (
@@ -66,6 +65,12 @@ class Engine:
             
             pygame.display.set_caption(f"drew {entity_count} entities, {tile_count} tiles @{fps:.2f} FPS")
 
+    def set_scene(self, scene):
+        self.map = scene.map
+        self.layers.update(scene.entities)
+        if scene.gui:
+            self.gui = scene.gui
+
     def handle_steps(self):
         for name, hook in self.step_hooks.items():
             # print(f"run step_hook: {name}")
@@ -100,9 +105,6 @@ class Engine:
         self.screen.fill(self.map.bg_color)
         tile_count = self.view.draw_map(self.map)
 
-        for entity in self.map.entities:
-            entity_count += int(self.view.draw(entity))
-
         for layer in self.layers.values():
             for entity in layer:
                 entity_count += int(self.view.draw(entity))
@@ -131,11 +133,14 @@ class Engine:
     def quit(self): 
         pygame.quit()
 
-    def entity_at(self, pos):
+    def entity_at(self, pos, layers=None, ignore=(99,)):
         x, y = pos
-        for ent in self.map.entities:
-            if ent.x == x and ent.y == y:
-                return ent
+        layers = layers if layers else self.layers.keys()
+        for layer in layers:
+            if layer in ignore: continue
+            for ent in self.layers[layer]:
+                if ent.x == x and ent.y == y:
+                    return ent
 
 
 class Viewport:

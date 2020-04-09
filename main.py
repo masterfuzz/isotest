@@ -1,10 +1,10 @@
-from iso.gfx.engine import Engine, Entity
+from iso.engine import Engine, Entity
 from iso.gfx.map import TileMap, TileSet
 from iso.gfx.gui import Gui, TextBox, CenterHorizontal
+from iso.control.scene import Scenario
 from iso.control.config import Config
 from iso.control.keybind import Keybindings
 from iso.control.keybind import KEYDOWN, KEYUP, MOUSEBUTTONDOWN
-# import pygame
 from logging import Logger
 log = Logger(__name__)
 
@@ -15,9 +15,8 @@ eng.on(KEYDOWN)(keybindings.keydown)
 eng.on(KEYUP)(keybindings.keyup)
 eng.set_timer(cfg.get("game/key_repeat_period", 250))(keybindings.keyrepeat)
 
-eng.map = TileMap("data/maps/lorge.json")
 status_box = TextBox("Hello World", size=(80, 25))
-entity_box = TextBox("No selection")
+entity_box = TextBox("No selection", resize=True)
 eng.gui = Gui(
     entity_box, 
     CenterHorizontal(
@@ -26,6 +25,9 @@ eng.gui = Gui(
         size=(eng.screen_width, 64)
     )
 )
+
+scene = Scenario(cfg.get("game/opening_scene"))
+eng.set_scene(scene)
 
 
 @eng.set_timer(160)

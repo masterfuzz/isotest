@@ -5,7 +5,7 @@
         "frame_limit": 30
     },
     "game": {
-        "opening": "data/scene/start.json"
+        "opening_scene": "data/scene/start.json"
     },
     "keybindings": {
         "CURSOR": {
