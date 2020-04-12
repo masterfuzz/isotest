@@ -1,6 +1,8 @@
-from iso.engine import Engine, Entity
+from iso.engine import Engine
 from iso.gfx.map import TileMap, TileSet
-from iso.gfx.gui import Gui, TextBox, CenterHorizontal
+# from iso.gfx.gui import Gui, TextBox, CenterHorizontal
+from iso.gfx.gui import Gui
+from iso.gfx.sprite import Sprite
 from iso.control.scene import Scenario
 from iso.control.config import Config
 from iso.control.keybind import Keybindings
@@ -15,16 +17,20 @@ eng.on(KEYDOWN)(keybindings.keydown)
 eng.on(KEYUP)(keybindings.keyup)
 eng.set_timer(cfg.get("game/key_repeat_period", 250))(keybindings.keyrepeat)
 
-status_box = TextBox("Hello World", size=(80, 25))
-entity_box = TextBox("No selection", resize=True)
-eng.gui = Gui(
-    entity_box, 
-    CenterHorizontal(
-        status_box,
-        pos=(0,eng.screen_height-64),
-        size=(eng.screen_width, 64)
-    )
-)
+# status_box = TextBox("Hello World", size=(80, 25))
+# entity_box = TextBox("No selection", resize=True)
+# eng.gui = Gui(
+#     entity_box, 
+#     CenterHorizontal(
+#         status_box,
+#         pos=(0,eng.screen_height-64),
+#         size=(eng.screen_width, 64)
+#     )
+# )
+# eng.gui = Gui.from_file("data/gui/main.xml")
+eng.gui = Gui.from_file("data/gui/splash.xml")
+status_box = eng.gui.get("status_box")
+entity_box = eng.gui.get("entity_box")
 
 scene = Scenario(cfg.get("game/opening_scene"))
 eng.set_scene(scene)
@@ -34,7 +40,7 @@ eng.set_scene(scene)
 def show_stats(e):
     status_box.text = f"FPS: {eng.get_fps()}"
 
-class Cursor(Entity):
+class Cursor(Sprite):
     def __init__(self, cursorfile):
         super().__init__(TileSet(cursorfile))
         self.on_shift = lambda s:None
@@ -66,13 +72,13 @@ def move_cursor(action):
     elif action == "RIGHT":
         cursor.shift(1)
     elif action == "NEXT":
-        cursor.selected_ent = (cursor.selected_ent + 1) % len(eng.map.entities)
-        ent = eng.map.entities[cursor.selected_ent]
+        cursor.selected_ent = (cursor.selected_ent + 1) % len(eng.layers[1])
+        ent = eng.layers[1][cursor.selected_ent]
         cursor.goto(ent.x, ent.y)
 
 @keybindings.hook("CURSOR", "SELECT")
 def select_entity():
-    ent = eng.entity_at((cursor.x, cursor.y))
+    ent = eng.sprite_at((cursor.x, cursor.y))
     if ent:
         entity_box.text = "You selected something"
     else:

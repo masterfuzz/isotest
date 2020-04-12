@@ -1,0 +1,9 @@
+<gui>
+<textbox id="entity_box" resize="true">entity box</textbox>
+
+<bottom>
+    <center>
+        <textbox id="status_box" width="80" height="25">status box</textbox>
+    </center>
+</bottom>
+</gui>

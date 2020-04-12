@@ -60,7 +60,6 @@ class TileMap:
         self.y = None
         self.bg_color = (0,0,0)
         self.frame = 0
-        self.entities = []
         self._load_map(map_file)
         self.default_tile = None
 

@@ -1,5 +1,5 @@
 from iso.control.config import Config
-from iso.engine import Entity
+from iso.gfx.sprite import Sprite
 from iso.gfx.map import TileSet, TileMap
 import json
 from collections import defaultdict
@@ -17,6 +17,7 @@ class Scenario(Config):
         for spec in entity_list:
             with open(spec['id']) as fh:
                 templ = json.load(fh)
-            e = Entity(pos=spec['pos'], tile_set=TileSet(templ['tile_set']))
+            # for now entity = sprite
+            e = Sprite(pos=spec['pos'], tile_set=TileSet(templ['tile_set']))
             layer = spec.get('layer', 1)
             self.entities[layer].append(e)

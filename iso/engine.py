@@ -59,11 +59,11 @@ class Engine:
             self.handle_events()
             self.handle_steps()
             self.map.advance()
-            entity_count, tile_count = self.render()
+            sprite_count, tile_count = self.render()
             self.clock.tick(self.frame_limit)
             fps = self.clock.get_fps()
             
-            pygame.display.set_caption(f"drew {entity_count} entities, {tile_count} tiles @{fps:.2f} FPS")
+            pygame.display.set_caption(f"{sprite_count} sprites, {tile_count} tiles @{fps:.2f} FPS")
 
     def set_scene(self, scene):
         self.map = scene.map
@@ -101,19 +101,20 @@ class Engine:
         self.step_hooks[name] = hook
 
     def render(self):
-        entity_count = 0
+        sprite_count = 0
         self.screen.fill(self.map.bg_color)
         tile_count = self.view.draw_map(self.map)
 
         for layer in self.layers.values():
-            for entity in layer:
-                entity_count += int(self.view.draw(entity))
+            for sprite in layer:
+                sprite_count += int(self.view.draw(sprite))
 
-        for widget in self.gui.widgets:
-            self.screen.blit(widget.renderer(), (widget.x, widget.y))
+        # for widget in self.gui.widgets:
+        #     self.screen.blit(widget.renderer(), (widget.x, widget.y))
+        self.gui.render(self.screen)
 
         pygame.display.flip()
-        return entity_count, tile_count
+        return sprite_count, tile_count
 
     def set_timer(self, period, etype=None):
         def decorate(func):
@@ -133,14 +134,14 @@ class Engine:
     def quit(self): 
         pygame.quit()
 
-    def entity_at(self, pos, layers=None, ignore=(99,)):
+    def sprite_at(self, pos, layers=None, ignore=(99,)):
         x, y = pos
         layers = layers if layers else self.layers.keys()
         for layer in layers:
             if layer in ignore: continue
-            for ent in self.layers[layer]:
-                if ent.x == x and ent.y == y:
-                    return ent
+            for sprite in self.layers[layer]:
+                if sprite.x == x and sprite.y == y:
+                    return sprite
 
 
 class Viewport:
@@ -149,10 +150,10 @@ class Viewport:
         self.pos = pos if pos else [0,0]
         self.scale = 2
 
-    def draw(self, entity):
-        if self.in_view(entity.get_rect()):
-            self.surf.blit(self.transform_surf(entity.get_image()), 
-                self.transform_pos(entity.x, entity.y))
+    def draw(self, sprite):
+        if self.in_view(sprite.get_rect()):
+            self.surf.blit(self.transform_surf(sprite.get_image()), 
+                self.transform_pos(sprite.x, sprite.y))
             return True
         else:
             return False
@@ -192,10 +193,10 @@ class Viewport:
         self.pos[0] += x
         self.pos[1] += y
 
-    def center_on(self, entity):
+    def center_on(self, sprite):
         self.pos = 0, 0
         nx, ny = self.screen_to_grid(self.surf.get_width() / 2, self.surf.get_height() / 2)
-        self.pos = self.transform_pos(entity.x-nx+0.5, entity.y-ny+0.5)
+        self.pos = self.transform_pos(sprite.x-nx+0.5, sprite.y-ny+0.5)
 
     def screen_to_grid(self, screen_x, screen_y):
         grid_x = (screen_x + self.pos[0]) / (self.scale*GRID_SIZE)
@@ -209,28 +210,3 @@ class Viewport:
         br_x, br_y = self.screen_to_grid(self.surf.get_width(), self.surf.get_height())
         return ((floor(min(tl_x, tr_x, bl_x, br_x)), ceil(max(tl_x, tr_x, bl_x, br_x))), 
                 (floor(min(tl_y, tr_y, bl_y, br_y)), ceil(max(tl_y, tr_y, bl_y, br_y))))
-
-class Entity:
-    def __init__(self, tile_set, pos=None, pose=0):
-        pos = pos if pos else [0,0]
-        self.x, self.y = pos
-        self.tile_set = tile_set
-        self.pose = pose
-        self.vflip = False
-        self.hflip = False
-        self.frame = 0
-        self.animate = False
-
-    def get_image(self):
-        img = self.tile_set[self.pose]
-        if type(img) == list:
-            return pygame.transform.flip(img[int(self.frame) % len(img)], self.vflip, self.hflip)
-        return pygame.transform.flip(img, self.vflip, self.hflip)
-
-    def get_rect(self):
-        rect = self.get_image().get_rect()
-        return pygame.Rect(self.x, self.y, rect.width, rect.height)
-
-
-
-
