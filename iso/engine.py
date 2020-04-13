@@ -80,7 +80,7 @@ class Engine:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
-                return
+                continue
             for hook in self.event_hooks[event.type]:
                 hook(event)
 

@@ -1,5 +1,49 @@
 import lxml.objectify
 import pygame
+from typing import Tuple, Union, List
+
+Loc = Tuple[int, int]
+Surface = Union[pygame.Surface, "MultiSurface"]
+SurfacePair = Tuple[Surface, Loc]
+
+class MultiSurface:
+    def __init__(self, *pairs: SurfacePair):
+        self.pairs = list(pairs)
+
+    def shift(self, by_x, by_y):
+        """ shift all pairs in place """
+        self.pairs = list(
+            (surf, (x+by_x, y+by_y)) for surf, (x, y) in self.pairs
+        )
+
+    def __iter__(self):
+        yield from self.pairs
+
+    def append(self, surf: Surface, loc: Loc =(0,0)):
+        if isinstance(surf, (pygame.Surface, MultiSurface)):
+            self.pairs.append((surf, loc))
+        else:
+            raise TypeError("Must be pygame Surface or MultiSurface")
+
+    def get_width(self) -> int:
+        offset = min(loc[0] for _, loc in self.pairs)
+        return max(loc[0]+surf.get_width()-offset for surf, loc in self.pairs)
+
+    def get_height(self) -> int:
+        offset = min(loc[1] for _, loc in self.pairs)
+        return max(loc[1]+surf.get_height()-offset for surf, loc in self.pairs)
+
+    def blit_to(self, dest: Surface, offset: Loc =(0,0)):
+        off_x, off_y = offset
+        for surf, (x, y) in self.pairs:
+            if isinstance(surf, MultiSurface):
+                surf.blit_to(dest, (x+off_x, y+off_y))
+            else:
+                dest.blit(surf, (x+off_x, y+off_y))
+
+    def blit(self, src: Surface, pos: Loc =(0,0)):
+        self.pairs.append((src, pos))
+
 
 class Widget:
     """ Base class for Widgets """
@@ -9,10 +53,12 @@ class Widget:
         self.x, self.y = int(x), int(y)
         self.width, self.height = width, height
         self.colorkey = colorkey
-        # self.surf = pygame.Surface((int(width), int(height)))
-        # self.surf.set_colorkey((255,0,255))
 
-    def get_size(self, parent_width, parent_height, **kwargs):
+    @property
+    def pos(self):
+        return self.x, self.y
+
+    def get_size(self, parent_width: int, parent_height: int, **kwargs) -> Loc:
         def _get_size(sz, pz):
             if type(sz) == str:
                 if sz.endswith("%"):
@@ -24,15 +70,15 @@ class Widget:
             return min(sz, pz)
         return _get_size(self.width, parent_width), _get_size(self.height, parent_height)
 
-    def _get_surf(self, size):
+    def _get_surf(self, size: Loc):
         surf = pygame.Surface(size)
         surf.fill(self.colorkey)
         surf.set_colorkey(self.colorkey)
         return surf
         
-    def renderer(self, **kwargs):
+    def render(self, **kwargs):
         surf = self._get_surf(self.get_size(**kwargs))
-        return surf
+        return MultiSurface((surf, (self.x, self.y)))
 
 
 class TextBox(Widget):
@@ -47,7 +93,7 @@ class TextBox(Widget):
         self.resize = resize
         self.font = font if font else pygame.font.SysFont(None, 24)
 
-    def renderer(self, **kwargs):
+    def render(self, **kwargs):
         font_surf = self.font.render(self.text, True, self.fg_color, self.bg_color)
         if self.resize:
             self.width = font_surf.get_width()
@@ -56,11 +102,10 @@ class TextBox(Widget):
             if self.colorkey:
                 surf.set_colorkey(self.colorkey)
         else:
-            surf = super().renderer(**kwargs)
+            surf = super().render(**kwargs)
             # surf = pygame.Surface((self.width, self.height))
-            surf.fill(self.bg_color)
             surf.blit(font_surf, (0,0))
-        return surf
+        return MultiSurface((surf, self.pos))
 
     @property
     def text(self):
@@ -75,60 +120,56 @@ class Container(Widget):
         super().__init__(**kwargs)
         self.children = children
 
-    def _render_children(self, **kwargs):
-        for child in self.children:
-            yield child.renderer(**kwargs), (child.x, child.y)
+    def render(self, **kwargs):
+        return MultiSurface(*[(child.render(**kwargs), (child.x+self.x, child.y+self.y)) for child in self.children])
 
-    def renderer(self, **kwargs):
-        child_surfs = list(self._render_children(**kwargs))
-        width = max(loc[0]+s.get_width() for s, loc in child_surfs)
-        height = max(loc[1]+s.get_height() for s, loc in child_surfs)
-        surf = self._get_surf((width, height))
-        for child_surf, loc in child_surfs:
-            surf.blit(child_surf, loc)
+    # def renderer(self, **kwargs):
+    #     child_surfs = list(self._render_children(**kwargs))
+    #     width = max(loc[0]+s.get_width() for s, loc in child_surfs)
+    #     height = max(loc[1]+s.get_height() for s, loc in child_surfs)
+    #     surf = self._get_surf((width, height))
+    #     for child_surf, loc in child_surfs:
+    #         surf.blit(child_surf, loc)
 
-        return surf
-
-class Flow(Container):
-    def renderer(self):
-        # TODO "flow" and margins...
-        surf = super().renderer()
-        x, y = 0, 0
-        for child in self.children:
-            child_surf = child.renderer()
-            surf.blit(child_surf, (x, y))
-            x += child_surf.get_width()
-        return surf
+    #     return surf
 
 class CenterHorizontal(Container):
-    def _render_children(self, **kwargs):
+    def render(self, **kwargs):
         my_width, my_height = self.get_size(**kwargs)
-        for child in self.children:
-            child_surf = child.renderer(**kwargs)
-            yield child_surf, (int(my_width / 2 - child_surf.get_width() / 2), child.y)
+        multi = super().render(**kwargs)
+        return MultiSurface(*(
+            (surf, (int(self.x + my_width / 2 - surf.get_width() /2), y))
+            for surf, (x, y) in multi
+        ))
 
 class CenterVertical(Container):
-    def _render_children(self, **kwargs):
+    def render(self, **kwargs):
+        multi = MultiSurface()
         my_width, my_height = self.get_size(**kwargs)
         for child in self.children:
-            child_surf = child.renderer(**kwargs)
-            yield child_surf, (child.x, int(my_height / 2 - child_surf.get_height() / 2))
+            child_surf = child.render(**kwargs)
+            multi.append(child_surf, (child.x, int(my_height / 2 - child_surf.get_height() / 2)))
+        return multi
 
 class Column(Container):
-    def _render_children(self, **kwargs):
+    def render(self, **kwargs):
         y = self.y
+        multi = MultiSurface()
         for child in self.children:
-            child_surf = child.renderer(**kwargs)
-            yield child_surf, (child.x, y)
+            child_surf = child.render(**kwargs)
+            multi.append(child_surf, (child.x, y))
             y += child_surf.get_height()
-
+        return multi
 
 class AlignBottom(Container):
-    def _render_children(self, **kwargs):
+    def render(self, **kwargs):
+        parent_height = kwargs['parent_height']
+        multi = MultiSurface()
         for child in self.children:
-            child_surf = child.renderer(**kwargs)
+            child_surf = child.render(**kwargs)
             y = kwargs['parent_height'] - child_surf.get_height()
-            yield child_surf, (child.x, y)
+            multi.append(child_surf, (child.x, y))
+        return multi
 
 schema = {
     "textbox": TextBox,
@@ -168,7 +209,8 @@ class Gui:
             yield widget
 
     def render(self, surf):
-        surf.blit(self.root.renderer(parent_width=surf.get_width(), parent_height=surf.get_height()), (0,0))
+        # surf.blit(self.root.renderer(parent_width=surf.get_width(), parent_height=surf.get_height()), (0,0))
+        self.root.render(parent_width=surf.get_width(), parent_height=surf.get_height()).blit_to(surf)
 
     def get(self, name):
         return self.ids[name]

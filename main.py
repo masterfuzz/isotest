@@ -17,18 +17,7 @@ eng.on(KEYDOWN)(keybindings.keydown)
 eng.on(KEYUP)(keybindings.keyup)
 eng.set_timer(cfg.get("game/key_repeat_period", 250))(keybindings.keyrepeat)
 
-# status_box = TextBox("Hello World", size=(80, 25))
-# entity_box = TextBox("No selection", resize=True)
-# eng.gui = Gui(
-#     entity_box, 
-#     CenterHorizontal(
-#         status_box,
-#         pos=(0,eng.screen_height-64),
-#         size=(eng.screen_width, 64)
-#     )
-# )
-# eng.gui = Gui.from_file("data/gui/main.xml")
-eng.gui = Gui.from_file("data/gui/splash.xml")
+eng.gui = Gui.from_file("data/gui/main.xml")
 status_box = eng.gui.get("status_box")
 entity_box = eng.gui.get("entity_box")
 

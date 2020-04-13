@@ -3,13 +3,12 @@
 <center>
     <vcenter>
         <column width="30%">
-            <center>
             <textbox id="start" resize="true">Start New Game</textbox>
             <textbox id="quit" resize="true">Quit</textbox>
-            </center>
         </column>
     </vcenter>
-
+</center>
+<center>
     <bottom>
         <textbox id="status_box" width="80" height="25">status box</textbox>
     </bottom>
