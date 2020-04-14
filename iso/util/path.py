@@ -3,8 +3,10 @@ from typing import Callable, Tuple, Dict, List
 import math
 from collections import defaultdict
 Point = Tuple[int, int]
+Heuristic = Callable[[Point], float]
+NeighborCost = Callable[[Point,Point], float]
 
-def default_heuristic(map: TileMap, goal: Point) -> Callable:
+def default_heuristic(map: TileMap, goal: Point) -> Heuristic:
     # for now just distance
     gx, gy = goal
     def h(start: Point) -> float:
@@ -16,12 +18,12 @@ def default_heuristic(map: TileMap, goal: Point) -> Callable:
 def trivial_d(current: Point, neighbor: Point) -> float:
     return 1
 
-def reconstruct_path(came_from: Dict[Point, Point], current: Point):
+def reconstruct_path(came_from: Dict[Point, Point], current: Point) -> List[Point]:
     path = [current]
     while current in came_from:
         current = came_from[current]
         path.append(current)
-    return path
+    return reversed(path)
 
 def neighborhood(at: Point) -> List[Point]:
     x, y = at
@@ -33,8 +35,7 @@ def neighborhood(at: Point) -> List[Point]:
     pass
 
 def a_star(start: Point, goal: Point, 
-            h: Callable[[Point], float],
-            d: Callable[[Point, Point], float]):
+            h: Heuristic, d: NeighborCost) -> List[Point]:
     """ Find path from start to goal. 
         h(x) is a heuristic that estimates cost from x to the goal
         d(x, y) is the cost to go from x to neighbor y
@@ -71,6 +72,19 @@ def a_star(start: Point, goal: Point,
                     open_set.add(neighbor)
 
     # failure
-    return False
+    return []
     
 
+def reverse_a_star(start: Point, budget: float,
+                    d: NeighborCost) -> List[Point]:
+    """ Return all points reachable within the budget 
+        assumes angle of approach is irrelevant """
+    visited = {}
+    def _visit(start: Point, budget: float):
+        if budget <= 0: return
+        for neighbor in neighborhood(start):
+            if neighbor not in visited:
+                _visit(neighbor, budget - d(start, neighbor))
+        visited[start] = True
+    _visit(start, budget)
+    return visited
