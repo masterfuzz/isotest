@@ -18,6 +18,11 @@ def default_heuristic(map: TileMap, goal: Point) -> Heuristic:
 def trivial_d(current: Point, neighbor: Point) -> float:
     return 1
 
+def dist(current: Point, neighbor: Point) -> float:
+    cx, cy = current
+    nx, ny = neighbor
+    return abs(cx-nx) + abs(cy-ny)
+
 def reconstruct_path(came_from: Dict[Point, Point], current: Point) -> List[Point]:
     path = [current]
     while current in came_from:
@@ -28,9 +33,9 @@ def reconstruct_path(came_from: Dict[Point, Point], current: Point) -> List[Poin
 def neighborhood(at: Point) -> List[Point]:
     x, y = at
     return (
-        (x-1,y-1), (x, y-1), (x+1, y-1),
+            (x, y-1),
         (x-1,y), (x+1,y),
-        (x-1,y+1), (x, y+1), (x+1, y+1)
+            (x, y+1)
     )
     pass
 
@@ -75,16 +80,19 @@ def a_star(start: Point, goal: Point,
     return []
     
 
-def reverse_a_star(start: Point, budget: float,
+def find_reachable(start: Point, budget: float,
                     d: NeighborCost) -> List[Point]:
     """ Return all points reachable within the budget 
         assumes angle of approach is irrelevant """
-    visited = {}
+    visited = defaultdict(lambda:-math.inf)
+
     def _visit(start: Point, budget: float):
         if budget <= 0: return
-        for neighbor in neighborhood(start):
-            if neighbor not in visited:
-                _visit(neighbor, budget - d(start, neighbor))
-        visited[start] = True
-    _visit(start, budget)
-    return visited
+        visited[start] = budget
+        yield start
+        for n in neighborhood(start):
+            new_budget = budget - d(start, n)
+            if new_budget > visited[n]:
+                yield from _visit(n, budget - d(start, n))
+
+    return _visit(start, budget)

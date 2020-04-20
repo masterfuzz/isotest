@@ -1,8 +1,10 @@
 from collections import defaultdict
+from typing import Callable, Any
 import pygame
 import random
 from math import floor, ceil
 from logging import Logger
+from iso.control.scene import Scenario
 log = Logger(__name__)
 
 from pygame.locals import (
@@ -65,8 +67,10 @@ class Engine:
             
             pygame.display.set_caption(f"{sprite_count} sprites, {tile_count} tiles @{fps:.2f} FPS")
 
-    def set_scene(self, scene):
+    def set_scene(self, scene: Scenario) -> None:
+        """ Switch the scenario. Won't change gui if gui is None """
         self.map = scene.map
+        # TODO clear entities?
         self.layers.update(scene.entities)
         if scene.gui:
             self.gui = scene.gui
@@ -84,11 +88,11 @@ class Engine:
             for hook in self.event_hooks[event.type]:
                 hook(event)
 
-    def register_hook(self, etype, hook):
+    def register_hook(self, etype: int, hook) -> None:
         self.event_hooks[etype].append(hook)
 
-    def on(self, etype):
-        def wrap(hook):
+    def on(self, etype: int) -> Callable[[Callable], Callable]:
+        def wrap(hook: Callable[[pygame.event.Event], Any]):
             self.register_hook(etype, hook)
             return hook
         return wrap
@@ -116,7 +120,7 @@ class Engine:
         pygame.display.flip()
         return sprite_count, tile_count
 
-    def set_timer(self, period, etype=None):
+    def set_timer(self, period: int, etype: int=None):
         def decorate(func):
             nonlocal etype 
             if etype is None:

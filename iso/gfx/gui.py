@@ -1,10 +1,10 @@
 import lxml.objectify
 import pygame
-from typing import Tuple, Union, List
+from typing import Tuple, Union, List, Generator
 
-Loc = Tuple[int, int]
+Point = Tuple[int, int]
 Surface = Union[pygame.Surface, "MultiSurface"]
-SurfacePair = Tuple[Surface, Loc]
+SurfacePair = Tuple[Surface, Point]
 
 class MultiSurface:
     def __init__(self, *pairs: SurfacePair):
@@ -19,7 +19,7 @@ class MultiSurface:
     def __iter__(self):
         yield from self.pairs
 
-    def append(self, surf: Surface, loc: Loc =(0,0)):
+    def append(self, surf: Surface, loc: Point =(0,0)) -> None:
         if isinstance(surf, (pygame.Surface, MultiSurface)):
             self.pairs.append((surf, loc))
         else:
@@ -33,7 +33,7 @@ class MultiSurface:
         offset = min(loc[1] for _, loc in self.pairs)
         return max(loc[1]+surf.get_height()-offset for surf, loc in self.pairs)
 
-    def blit_to(self, dest: Surface, offset: Loc =(0,0)):
+    def blit_to(self, dest: Surface, offset: Point =(0,0)) -> None:
         off_x, off_y = offset
         for surf, (x, y) in self.pairs:
             if isinstance(surf, MultiSurface):
@@ -41,7 +41,7 @@ class MultiSurface:
             else:
                 dest.blit(surf, (x+off_x, y+off_y))
 
-    def blit(self, src: Surface, pos: Loc =(0,0)):
+    def blit(self, src: Surface, pos: Point =(0,0)) -> None:
         self.pairs.append((src, pos))
 
 
@@ -55,10 +55,10 @@ class Widget:
         self.colorkey = colorkey
 
     @property
-    def pos(self):
+    def pos(self) -> Point:
         return self.x, self.y
 
-    def get_size(self, parent_width: int, parent_height: int, **kwargs) -> Loc:
+    def get_size(self, parent_width: int, parent_height: int, **kwargs) -> Point:
         def _get_size(sz, pz):
             if type(sz) == str:
                 if sz.endswith("%"):
@@ -70,7 +70,7 @@ class Widget:
             return min(sz, pz)
         return _get_size(self.width, parent_width), _get_size(self.height, parent_height)
 
-    def _get_surf(self, size: Loc):
+    def _get_surf(self, size: Point):
         surf = pygame.Surface(size)
         surf.fill(self.colorkey)
         surf.set_colorkey(self.colorkey)
@@ -181,12 +181,12 @@ schema = {
 
 
 class Gui:
-    def __init__(self, *widgets):
+    def __init__(self, *widgets: Widget):
         self.root = Container(*widgets)
         self.ids = {}
 
     @classmethod
-    def from_file(cls, path):
+    def from_file(cls, path: str):
         etree = lxml.objectify.parse(path)
         root = etree.getroot()
         if root.tag != "gui":
@@ -195,7 +195,7 @@ class Gui:
         gui.root.children = list(gui._get_elements(root.iterchildren(), gui.root))
         return gui
     
-    def _get_elements(self, elems, parent):
+    def _get_elements(self, elems, parent: Widget) -> Generator[Widget, None, None]:
         for elem in elems:
             if elem.text:
                 elem.attrib['text'] = elem.text
@@ -208,10 +208,9 @@ class Gui:
                 widget.children = list(self._get_elements(elem.iterchildren(), widget))
             yield widget
 
-    def render(self, surf):
-        # surf.blit(self.root.renderer(parent_width=surf.get_width(), parent_height=surf.get_height()), (0,0))
+    def render(self, surf: pygame.Surface) -> None:
         self.root.render(parent_width=surf.get_width(), parent_height=surf.get_height()).blit_to(surf)
 
-    def get(self, name):
+    def get(self, name: str) -> Widget:
         return self.ids[name]
 

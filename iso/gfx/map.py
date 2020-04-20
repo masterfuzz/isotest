@@ -1,6 +1,6 @@
 import pygame
 import json
-from iso.engine import GRID_SIZE
+import iso.engine
 from logging import Logger
 log = Logger(__name__)
 
@@ -14,7 +14,7 @@ class TileSet:
             conf = json.load(fh)
 
         self._image = pygame.image.load(conf['image']).convert()
-        sz = conf.get('size', (GRID_SIZE,GRID_SIZE))
+        sz = conf.get('size', (iso.engine.GRID_SIZE,iso.engine.GRID_SIZE))
         if type(sz) == int:
             self.sz_x = sz
             self.sz_y = sz
@@ -51,6 +51,18 @@ class TileSet:
             else:
                 return self._named[index]
 
+    def get_name(self, index):
+        if type(index) == int:
+            for k, v in self._named.items():
+                if index in v:
+                    return k
+            return None
+        path = index.split('/')
+        path = path[0]
+        if path in self._named:
+            return path
+        else:
+            return None
 
 class TileMap:
     def __init__(self, map_file):
@@ -60,8 +72,10 @@ class TileMap:
         self.y = None
         self.bg_color = (0,0,0)
         self.frame = 0
-        self._load_map(map_file)
         self.default_tile = None
+        self.tint = {}
+        self.terrain = {}
+        self._load_map(map_file)
 
     @property
     def width(self):
@@ -78,6 +92,12 @@ class TileMap:
         self.bg_color = map_data.get('bg_color', (0,0,0))
         self.grid = map_data['grid']
         self.tile_set = TileSet(map_data['tile_set'])
+        self._load_terrain(map_data.get('terrain'))
+
+    def _load_terrain(self, path):
+        if path is None: return
+        with open(path) as fh:
+            self.terrain = json.load(fh)
 
     def advance(self, rate=10):
         self.frame += 1/rate
@@ -90,8 +110,22 @@ class TileMap:
         tile = self.tile_set[self.grid[i][j]]
         if type(tile) == list:
             tile = tile[int(self.frame) % len(tile)]
+        if (i,j) in self.tint:
+            tile = tile.copy()
+            # tile.fill((0, 0, 0, 255), None, pygame.BLEND_RGBA_MULT)
+            tile.fill(self.tint[(i,j)] + (0,), None, pygame.BLEND_RGBA_ADD)
         return tile
+
+    def clear_tint(self):
+        self.tint = {}
 
     def get_rect(self):
         return self.image.get_rect()
+
+    def get_terrain(self, index):
+        i, j = index
+        name = self.tile_set.get_name(self.grid[i][j])
+        return self.terrain.get(name, self.terrain.get("DEFAULT"))
+
+
 

@@ -1,0 +1,6 @@
+{
+    "grass": "NORMAL",
+    "water": "WATER",
+    "sand": "DIFFICULT",
+    "DEFAULT": "NORMAL"
+}

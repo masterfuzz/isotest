@@ -7,6 +7,8 @@ from iso.control.scene import Scenario
 from iso.control.config import Config
 from iso.control.keybind import Keybindings
 from iso.control.keybind import KEYDOWN, KEYUP, MOUSEBUTTONDOWN
+import iso.util.path
+import demo.terrain
 from logging import Logger
 log = Logger(__name__)
 
@@ -20,6 +22,8 @@ eng.set_timer(cfg.get("game/key_repeat_period", 250))(keybindings.keyrepeat)
 eng.gui = Gui.from_file("data/gui/main.xml")
 status_box = eng.gui.get("status_box")
 entity_box = eng.gui.get("entity_box")
+
+tmap = demo.terrain.TerrainMap("data/maps/terrain_types.json")
 
 scene = Scenario(cfg.get("game/opening_scene"))
 eng.set_scene(scene)
@@ -70,8 +74,14 @@ def select_entity():
     ent = eng.sprite_at((cursor.x, cursor.y))
     if ent:
         entity_box.text = "You selected something"
+        highlight_path((ent.x, ent.y), 5)
     else:
         entity_box.text = "Nothing here"
+
+def highlight_path(start, budget):
+    eng.map.clear_tint()
+    for point in iso.util.path.find_reachable(start, budget, tmap.get_dist_func("default", eng.map)):
+        eng.map.tint[point] = (0,0,200)
 
 @keybindings.hook("VIEW")
 def zoom_view(action):

@@ -1,0 +1,15 @@
+{
+    "default": {
+        "NORMAL": 1,
+        "WATER": null,
+        "DIFFICULT": 2
+    },
+    "flying": {
+        "WATER": 1,
+        "DIFFICULT": 1
+    },
+    "swimming": {
+        "WATER": 1
+    }
+
+}
